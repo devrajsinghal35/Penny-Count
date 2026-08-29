@@ -1,0 +1,3 @@
+# This directory holds the SQLite database file.
+# finance.db is auto-created by SQLAlchemy when you first run app.py.
+# Do NOT commit finance.db to Git — it contains user data.
