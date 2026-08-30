@@ -21,6 +21,7 @@ export default function App() {
   const [transactions, setTransactions] = useState([]);
   const [safeToSpend, setSafeToSpend] = useState(null);
   const [showSafeBreakdown, setShowSafeBreakdown] = useState(false);
+  const [showCommitmentsDetails, setShowCommitmentsDetails] = useState(false);
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
 
@@ -55,6 +56,7 @@ export default function App() {
       setSummary(summaryData);
       
       const safeData = await api.get('/financial/safe-to-spend');
+      console.log('Safe to Spend API response:', safeData);
       setSafeToSpend(safeData);
       
       const queryParams = [];
@@ -423,18 +425,18 @@ export default function App() {
 
             {/* Safe-to-Spend Feature */}
             {safeToSpend && (
-              <div className="card safe-to-spend-card" style={{ marginBottom: '1.5rem', background: 'linear-gradient(135deg, var(--bg-1), var(--bg-2))', border: '1px solid var(--border)', position: 'relative', overflow: 'hidden' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div className="card safe-to-spend-card" style={{ marginBottom: '1.5rem', background: 'linear-gradient(135deg, var(--bg-2), var(--bg-3))', border: '1px solid var(--border)', position: 'relative' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
                   <div>
                     <h2 style={{ fontSize: '1.2rem', margin: 0, color: 'var(--text-2)' }}>Safe to Spend</h2>
                     <div style={{ fontSize: '2.5rem', fontWeight: 'bold', margin: '0.5rem 0', color: 'var(--text-1)' }}>
                       {formatINR(safeToSpend.safe_to_spend)}
                     </div>
-                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                      <span className="badge" style={{ background: 'var(--primary-light)', color: 'var(--primary)' }}>
+                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                      <span className="badge" style={{ background: 'var(--accent-glow)', color: 'var(--text-1)', padding: '0.25rem 0.6rem' }}>
                         {formatINR(safeToSpend.daily_safe_to_spend)} / day
                       </span>
-                      <span style={{ fontSize: '0.9rem', color: safeToSpend.safe_to_spend < 0 ? 'var(--danger)' : 'var(--success)' }}>
+                      <span style={{ fontSize: '0.9rem', fontWeight: '500', color: safeToSpend.safe_to_spend < 0 ? 'var(--expense)' : 'var(--income)' }}>
                         {safeToSpend.status}
                       </span>
                     </div>
@@ -445,26 +447,58 @@ export default function App() {
                     </button>
                   </div>
                 </div>
+                    {showSafeBreakdown && (
+                  <div style={{ marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid var(--border)' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+                      <div>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--text-2)' }}>Current Balance</div>
+                        <div style={{ fontWeight: 'bold' }}>{formatINR(safeToSpend.current_balance)}</div>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--text-2)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                          Upcoming Commitments
+                          {safeToSpend.upcoming_commitments_details && safeToSpend.upcoming_commitments_details.length > 0 && (
+                            <span 
+                              onClick={() => setShowCommitmentsDetails(!showCommitmentsDetails)} 
+                              style={{ color: 'var(--accent)', cursor: 'pointer', textDecoration: 'underline', fontSize: '0.75rem', fontWeight: '500' }}
+                            >
+                              {showCommitmentsDetails ? '(less)' : '(show more)'}
+                            </span>
+                          )}
+                        </div>
+                        <div style={{ fontWeight: 'bold', color: 'var(--expense)' }}>-{formatINR(safeToSpend.upcoming_commitments)}</div>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--text-2)' }}>Expected Essential</div>
+                        <div style={{ fontWeight: 'bold', color: 'var(--expense)' }}>-{formatINR(safeToSpend.expected_essential_spending)}</div>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--text-2)' }}>Safety Buffer</div>
+                        <div style={{ fontWeight: 'bold', color: 'var(--expense)' }}>-{formatINR(safeToSpend.safety_buffer)}</div>
+                      </div>
+                    </div>
 
-                {showSafeBreakdown && (
-                  <div style={{ marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid var(--border)', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
-                    <div>
-                      <div style={{ fontSize: '0.8rem', color: 'var(--text-2)' }}>Current Balance</div>
-                      <div style={{ fontWeight: 'bold' }}>{formatINR(safeToSpend.current_balance)}</div>
-                    </div>
-                    <div>
-                      <div style={{ fontSize: '0.8rem', color: 'var(--text-2)' }}>Upcoming Commitments</div>
-                      <div style={{ fontWeight: 'bold', color: 'var(--danger)' }}>-{formatINR(safeToSpend.upcoming_commitments)}</div>
-                    </div>
-                    <div>
-                      <div style={{ fontSize: '0.8rem', color: 'var(--text-2)' }}>Expected Essential</div>
-                      <div style={{ fontWeight: 'bold', color: 'var(--danger)' }}>-{formatINR(safeToSpend.expected_essential_spending)}</div>
-                    </div>
-                    <div>
-                      <div style={{ fontSize: '0.8rem', color: 'var(--text-2)' }}>Safety Buffer</div>
-                      <div style={{ fontWeight: 'bold', color: 'var(--danger)' }}>-{formatINR(safeToSpend.safety_buffer)}</div>
-                    </div>
-                    <div style={{ gridColumn: '1 / -1', fontSize: '0.8rem', color: 'var(--text-2)', textAlign: 'right' }}>
+                    {showCommitmentsDetails && safeToSpend.upcoming_commitments_details && safeToSpend.upcoming_commitments_details.length > 0 && (
+                      <div style={{ marginTop: '1.25rem', padding: '1rem', background: 'var(--bg-3)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }}>
+                        <div style={{ fontSize: '0.85rem', fontWeight: '700', marginBottom: '0.75rem', color: 'var(--text-1)', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>Upcoming Bills & Commitments Details</div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+                          {safeToSpend.upcoming_commitments_details.map((item, idx) => (
+                            <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem', paddingBottom: idx < safeToSpend.upcoming_commitments_details.length - 1 ? '0.5rem' : '0', borderBottom: idx < safeToSpend.upcoming_commitments_details.length - 1 ? '1px solid rgba(255,255,255,0.03)' : 'none' }}>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
+                                <span style={{ fontWeight: '600', color: 'var(--text-1)' }}>{item.name}</span>
+                                <span style={{ fontSize: '0.75rem', color: 'var(--text-3)' }}>Category: {item.category}</span>
+                              </div>
+                              <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
+                                <span style={{ fontWeight: '700', color: 'var(--expense)' }}>-{formatINR(item.amount)}</span>
+                                <span style={{ fontSize: '0.75rem', color: 'var(--text-2)' }}>Expected pay date: {item.expected_date}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    <div style={{ marginTop: '1rem', fontSize: '0.8rem', color: 'var(--text-2)', textAlign: 'right' }}>
                       Period: {safeToSpend.calculation_period}
                     </div>
                   </div>

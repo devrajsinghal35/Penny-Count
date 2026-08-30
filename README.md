@@ -33,7 +33,7 @@ React SPA (Port 5173) ──(JSON/JWT)──> Flask API (Port 5002) ──> SQLA
 The workspace is organized into clean `backend` and `frontend` microservice directories:
 
 ```
-finance-tracker-mern-full/
+FinGuard/
 ├── backend/                  # Flask REST API Microservice
 │   ├── app.py                # Flask app factory & entry point
 │   ├── config.py             # Database and security configuration
