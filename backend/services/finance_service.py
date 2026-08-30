@@ -158,6 +158,7 @@ def get_safe_to_spend(user_id: int) -> dict:
         return {
             "current_balance": round(current_balance, 2),
             "upcoming_commitments": 0.0,
+            "upcoming_commitments_details": [],
             "expected_essential_spending": 0.0,
             "safety_buffer": 0.0,
             "safe_to_spend": round(current_balance, 2),
@@ -171,17 +172,55 @@ def get_safe_to_spend(user_id: int) -> dict:
     past_txs = [t for t in transactions if t.date < this_month_start and t.type == 'expense']
     this_month_txs = [t for t in transactions if t.date >= this_month_start and t.type == 'expense']
     
-    # Upcoming Commitments (Housing, Utilities, Investment)
+    # Calculate upcoming commitments based on specific recurring titles
     commitments_categories = {'Housing', 'Utilities', 'Investment'}
+    from collections import defaultdict
+    past_commitments_by_title = defaultdict(list)
+    for t in past_txs:
+        if t.category in commitments_categories:
+            past_commitments_by_title[t.title].append(t)
+            
     upcoming_commitments = 0.0
-    for cat in commitments_categories:
-        cat_past_txs = [t for t in past_txs if t.category == cat]
-        unique_months = len(set((t.date.year, t.date.month) for t in cat_past_txs))
-        
+    upcoming_details = []
+    
+    for title, txs_list in past_commitments_by_title.items():
+        unique_months = len(set((t.date.year, t.date.month) for t in txs_list))
         if unique_months > 0:
-            avg_monthly = sum(t.amount for t in cat_past_txs) / unique_months
-            spent_this_month = sum(t.amount for t in this_month_txs if t.category == cat)
-            upcoming_commitments += max(0.0, avg_monthly - spent_this_month)
+            avg_monthly = sum(t.amount for t in txs_list) / unique_months
+            
+            # Find the most common category for this title
+            category = txs_list[0].category
+            
+            # Find the average day of the month
+            avg_day = round(sum(t.date.day for t in txs_list) / len(txs_list))
+            avg_day = max(1, min(28, avg_day))
+            
+            # Check if spent this month
+            spent_this_month = sum(t.amount for t in this_month_txs if t.title.lower() == title.lower() or t.category == category)
+            # Alternatively, check specifically by title or category
+            # Let's fallback to category-based matching if title-based matching doesn't find it
+            this_month_paid_by_title = [t for t in this_month_txs if title.lower() in t.title.lower() or t.title.lower() in title.lower()]
+            
+            if this_month_paid_by_title:
+                spent_this_month = sum(t.amount for t in this_month_paid_by_title)
+            else:
+                # If no matching title, check if we already paid category commitments
+                spent_this_month = sum(t.amount for t in this_month_txs if t.category == category)
+                
+            rem = max(0.0, avg_monthly - spent_this_month)
+            if rem > 0:
+                upcoming_commitments += rem
+                expected_date = today.replace(day=avg_day)
+                upcoming_details.append({
+                    "name": title,
+                    "category": category,
+                    "amount": round(rem, 2),
+                    "expected_date": expected_date.strftime("%Y-%m-%d"),
+                    "expected_day": avg_day
+                })
+                
+    # Sort upcoming commitments by expected day
+    upcoming_details.sort(key=lambda x: x["expected_day"])
             
     # Expected Essential Spending (Food, Travel)
     essential_categories = {'Food', 'Travel'}
@@ -214,6 +253,7 @@ def get_safe_to_spend(user_id: int) -> dict:
     return {
         "current_balance": round(current_balance, 2),
         "upcoming_commitments": round(upcoming_commitments, 2),
+        "upcoming_commitments_details": upcoming_details,
         "expected_essential_spending": round(expected_essential_spending, 2),
         "safety_buffer": round(safety_buffer, 2),
         "safe_to_spend": round(safe_to_spend, 2),
