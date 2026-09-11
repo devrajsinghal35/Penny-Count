@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from routes.auth import token_required
 from services.finance_service import (
-    get_transactions, add_transaction, delete_transaction, get_summary, update_transaction, get_safe_to_spend, seed_demo_data
+    get_transactions, add_transaction, delete_transaction, get_summary, update_transaction, get_safe_to_spend, seed_demo_data, clear_user_data
 )
 
 transactions_bp = Blueprint('transactions', __name__)
@@ -82,3 +82,10 @@ def api_delete(current_user, tx_id):
     if deleted:
         return jsonify({'message': 'Transaction deleted successfully'}), 200
     return jsonify({'message': 'Transaction not found or unauthorized'}), 404
+
+@transactions_bp.route("/api/transactions/clear-all", methods=["DELETE", "POST"])
+@token_required
+def api_clear_all(current_user):
+    """DELETE/POST /api/transactions/clear-all — Delete all user transaction data."""
+    clear_user_data(current_user.id)
+    return jsonify({"success": True, "message": "All transaction data cleared successfully."})
