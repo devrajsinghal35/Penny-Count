@@ -84,8 +84,14 @@ def api_delete(current_user, tx_id):
     return jsonify({'message': 'Transaction not found or unauthorized'}), 404
 
 @transactions_bp.route("/api/transactions/clear-all", methods=["DELETE", "POST", "OPTIONS"])
+@transactions_bp.route("/api/transactions/clear", methods=["DELETE", "POST", "OPTIONS"])
 @token_required
 def api_clear_all(current_user):
     """DELETE/POST /api/transactions/clear-all — Delete all user transaction data."""
-    clear_user_data(current_user.id)
-    return jsonify({"success": True, "message": "All transaction data cleared successfully."})
+    try:
+        clear_user_data(current_user.id)
+        return jsonify({"success": True, "message": "All transaction data cleared successfully."}), 200
+    except Exception as e:
+        from models import db
+        db.session.rollback()
+        return jsonify({"success": False, "message": str(e)}), 500

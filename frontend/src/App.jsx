@@ -124,6 +124,8 @@ export default function App() {
     setLoading(true);
     try {
       await api.post('/transactions/seed-demo');
+      setFilterMonth('');
+      setFilterType('all');
       showToast("Sample data loaded successfully!", "success");
       await loadData();
     } catch (err) {
@@ -134,11 +136,20 @@ export default function App() {
   };
 
   const handleClearAllData = async () => {
-    if (!window.confirm("Are you sure you want to delete all transaction data? This cannot be undone.")) return;
+    if (!window.confirm("Are you sure you want to delete all sample transactions? This cannot be undone.")) return;
     setLoading(true);
     try {
-      await api.post('/transactions/clear-all');
-      showToast("All transaction data cleared successfully!", "success");
+      try {
+        await api.post('/transactions/clear-all');
+      } catch {
+        await api.post('/transactions/clear');
+      }
+      setTransactions([]);
+      setSummary({ income: 0, expense: 0, balance: 0, categoryBreakdown: [] });
+      setSafeToSpend(null);
+      setFilterMonth('');
+      setFilterType('all');
+      showToast("All sample data deleted successfully!", "success");
       await loadData();
     } catch (err) {
       showToast(err.message, 'error');
@@ -753,10 +764,45 @@ export default function App() {
 
         {currentPage === 'transactions' && (
           <>
-            <div className="page-header">
+            <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
               <div>
                 <h1>{txId ? 'Edit Transaction' : 'Transactions'}</h1>
                 <p>{txId ? 'Modify existing transaction details' : 'Manage your cashflow history and add new activities'}</p>
+              </div>
+
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                <button 
+                  className="btn-ghost" 
+                  onClick={handleLoadDemo} 
+                  style={{ 
+                    border: '1px solid var(--primary)', 
+                    color: 'var(--primary)', 
+                    padding: '0.4rem 0.8rem', 
+                    borderRadius: '8px', 
+                    fontSize: '0.85rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.4rem'
+                  }}
+                >
+                  🚀 Try with Sample Data
+                </button>
+                <button 
+                  className="btn-ghost" 
+                  onClick={handleClearAllData} 
+                  style={{ 
+                    border: '1px solid var(--danger)', 
+                    color: 'var(--danger)', 
+                    padding: '0.4rem 0.8rem', 
+                    borderRadius: '8px', 
+                    fontSize: '0.85rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.4rem'
+                  }}
+                >
+                  🗑️ Delete Sample Data
+                </button>
               </div>
               
               {!txId && (
