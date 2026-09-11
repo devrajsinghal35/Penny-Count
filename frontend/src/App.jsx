@@ -137,7 +137,7 @@ export default function App() {
     if (!window.confirm("Are you sure you want to delete all transaction data? This cannot be undone.")) return;
     setLoading(true);
     try {
-      await api.delete('/transactions/clear-all');
+      await api.post('/transactions/clear-all');
       showToast("All transaction data cleared successfully!", "success");
       await loadData();
     } catch (err) {
@@ -603,7 +603,7 @@ export default function App() {
                     gap: '0.5rem'
                   }}
                 >
-                  🗑️ Delete Seed Data
+                  🗑️ Delete Sample Data
                 </button>
               </div>
             </div>
