@@ -1,4 +1,4 @@
-# 💰 FinGuard — Personal Finance Hub
+# 💰 Penny-Count — Personal Finance Hub
 
 A premium, modern personal finance tracker and spending intelligence tool built using a **React SPA** (Vite, Vanilla CSS) and a **Python Flask API** (SQLAlchemy, SQLite, JWT auth).
 
@@ -17,7 +17,7 @@ A premium, modern personal finance tracker and spending intelligence tool built 
 
 | Layer | Technology |
 |---|---|
-| **Frontend** | React (Vite), Vanilla CSS (Dark Glassmorphism Theme) |
+| **Frontend** | React (Vite), Custom Cyber-Emerald Dark Mode CSS |
 | **Backend** | Python 3.11+, Flask 3.0 |
 | **Database** | SQLite (via SQLAlchemy ORM) |
 | **Auth** | JWT (JSON Web Tokens) with PyJWT + Werkzeug hashing |
@@ -33,7 +33,7 @@ React SPA (Port 5173) ──(JSON/JWT)──> Flask API (Port 5002) ──> SQLA
 The workspace is organized into clean `backend` and `frontend` microservice directories:
 
 ```
-FinGuard/
+Penny-Count/
 ├── backend/                  # Flask REST API Microservice
 │   ├── app.py                # Flask app factory & entry point
 │   ├── config.py             # Database and security configuration
@@ -48,7 +48,7 @@ FinGuard/
 │   ├── index.html            # Vite app entry
 │   └── src/
 │       ├── api.js            # Unified fetch wrapper with Auth headers
-│       ├── index.css         # Custom Dark-Mode glassmorphic UI styles
+│       ├── index.css         # Modern Cyber-Emerald aesthetic & glassmorphism
 │       └── App.jsx           # State manager, Routing, Views, & Components
 ```
 
