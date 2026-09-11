@@ -397,3 +397,11 @@ def seed_demo_data(user_id: int) -> bool:
     return True
 
 
+
+
+def clear_user_data(user_id: int) -> bool:
+    """Clear all transactions for the specified user."""
+    from models.transaction import Transaction
+    Transaction.query.filter_by(user_id=user_id).delete()
+    db.session.commit()
+    return True

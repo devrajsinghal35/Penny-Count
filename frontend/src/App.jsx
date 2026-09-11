@@ -133,6 +133,20 @@ export default function App() {
     }
   };
 
+  const handleClearAllData = async () => {
+    if (!window.confirm("Are you sure you want to delete all transaction data? This cannot be undone.")) return;
+    setLoading(true);
+    try {
+      await api.delete('/transactions/clear-all');
+      showToast("All transaction data cleared successfully!", "success");
+      await loadData();
+    } catch (err) {
+      showToast(err.message, 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // --- Transaction Handlers ---
   const handleSaveTransaction = async (e) => {
     e.preventDefault();
@@ -200,25 +214,59 @@ export default function App() {
 
   // --- SVG Chart Helpers ---
   const renderTrendChart = () => {
-    // Generate curved line chart inspired by modern fintech dashboards
-    const points = [
-      { month: 'Jan', val: 12000 },
-      { month: 'Feb', val: 18500 },
-      { month: 'Mar', val: 14200 },
-      { month: 'Apr', val: 29000 },
-      { month: 'May', val: 24500 },
-      { month: 'Jun', val: 38000 }
-    ];
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const now = new Date();
+    
+    // Generate last 6 rolling months array
+    const months = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      months.push({
+        year: d.getFullYear(),
+        monthIdx: d.getMonth(),
+        label: monthNames[d.getMonth()],
+        val: 0
+      });
+    }
 
-    const maxVal = 40000;
+    // Accumulate actual expense amounts from live transactions
+    (transactions || []).forEach(tx => {
+      if (tx.type === 'expense' && tx.date) {
+        const parts = tx.date.split('-');
+        if (parts.length === 3) {
+          const y = parseInt(parts[0], 10);
+          const m = parseInt(parts[1], 10) - 1;
+          const target = months.find(item => item.year === y && item.monthIdx === m);
+          if (target) {
+            target.val += Number(tx.amount || 0);
+          }
+        }
+      }
+    });
+
+    const currentMonthVal = months[months.length - 1].val;
+    const prevMonthVal = months[months.length - 2].val;
+    
+    let changePercentageStr = '0% this month';
+    let isIncrease = false;
+    if (prevMonthVal > 0) {
+      const diff = ((currentMonthVal - prevMonthVal) / prevMonthVal) * 100;
+      isIncrease = diff > 0;
+      changePercentageStr = `${diff >= 0 ? '+' : ''}${diff.toFixed(1)}% this month`;
+    } else if (currentMonthVal > 0) {
+      isIncrease = true;
+      changePercentageStr = '+100% this month';
+    }
+
+    const maxVal = Math.max(...months.map(m => m.val), 1000);
     const width = 360;
     const height = 130;
     const padding = 20;
 
-    const coords = points.map((p, idx) => {
-      const x = padding + (idx * ((width - 2 * padding) / (points.length - 1)));
+    const coords = months.map((p, idx) => {
+      const x = padding + (idx * ((width - 2 * padding) / (months.length - 1)));
       const y = height - padding - ((p.val / maxVal) * (height - 2 * padding));
-      return { x, y, label: p.month, val: p.val };
+      return { x, y, label: p.label, val: p.val };
     });
 
     const pathD = coords.reduce((acc, pt, i, a) => {
@@ -238,9 +286,11 @@ export default function App() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
             <span style={{ fontSize: '0.8rem', color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Spending Velocity</span>
-            <div style={{ fontSize: '1.4rem', fontWeight: '800', color: 'var(--text-1)', fontFamily: 'Outfit, sans-serif' }}>₹38,000.00</div>
+            <div style={{ fontSize: '1.4rem', fontWeight: '800', color: 'var(--text-1)', fontFamily: 'Outfit, sans-serif' }}>{formatINR(currentMonthVal)}</div>
           </div>
-          <span className="badge income" style={{ fontSize: '0.75rem' }}>+18.4% this month</span>
+          <span className={`badge ${isIncrease ? 'expense' : 'income'}`} style={{ fontSize: '0.75rem' }}>
+            {changePercentageStr}
+          </span>
         </div>
 
         <svg viewBox={`0 0 ${width} ${height}`} style={{ width: '100%', height: 'auto', overflow: 'visible' }}>
@@ -517,27 +567,45 @@ export default function App() {
         
         {currentPage === 'dashboard' && (
           <>
-            <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
               <div>
                 <h1>Dashboard</h1>
                 <p>Track your budget summary and category spending</p>
               </div>
-              <button 
-                className="btn-ghost" 
-                onClick={handleLoadDemo} 
-                style={{ 
-                  border: '1px solid var(--primary)', 
-                  color: 'var(--primary)', 
-                  padding: '0.5rem 1rem', 
-                  borderRadius: '8px', 
-                  fontSize: '0.9rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem'
-                }}
-              >
-                🚀 Try with Sample Data
-              </button>
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                <button 
+                  className="btn-ghost" 
+                  onClick={handleLoadDemo} 
+                  style={{ 
+                    border: '1px solid var(--primary)', 
+                    color: 'var(--primary)', 
+                    padding: '0.5rem 1rem', 
+                    borderRadius: '8px', 
+                    fontSize: '0.9rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem'
+                  }}
+                >
+                  🚀 Try with Sample Data
+                </button>
+                <button 
+                  className="btn-ghost" 
+                  onClick={handleClearAllData} 
+                  style={{ 
+                    border: '1px solid var(--danger)', 
+                    color: 'var(--danger)', 
+                    padding: '0.5rem 1rem', 
+                    borderRadius: '8px', 
+                    fontSize: '0.9rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem'
+                  }}
+                >
+                  🗑️ Delete Seed Data
+                </button>
+              </div>
             </div>
 
             {/* Safe-to-Spend Feature */}
