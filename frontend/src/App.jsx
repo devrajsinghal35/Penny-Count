@@ -198,12 +198,82 @@ export default function App() {
     setTxDate(new Date().toISOString().split('T')[0]);
   };
 
-  // --- SVG Donut Helpers ---
-  const renderDonutChart = () => {
+  // --- SVG Chart Helpers ---
+  const renderTrendChart = () => {
+    // Generate curved line chart inspired by modern fintech dashboards
+    const points = [
+      { month: 'Jan', val: 12000 },
+      { month: 'Feb', val: 18500 },
+      { month: 'Mar', val: 14200 },
+      { month: 'Apr', val: 29000 },
+      { month: 'May', val: 24500 },
+      { month: 'Jun', val: 38000 }
+    ];
+
+    const maxVal = 40000;
+    const width = 360;
+    const height = 130;
+    const padding = 20;
+
+    const coords = points.map((p, idx) => {
+      const x = padding + (idx * ((width - 2 * padding) / (points.length - 1)));
+      const y = height - padding - ((p.val / maxVal) * (height - 2 * padding));
+      return { x, y, label: p.month, val: p.val };
+    });
+
+    const pathD = coords.reduce((acc, pt, i, a) => {
+      if (i === 0) return `M ${pt.x},${pt.y}`;
+      const prev = a[i - 1];
+      const cx1 = prev.x + (pt.x - prev.x) / 2;
+      const cy1 = prev.y;
+      const cx2 = prev.x + (pt.x - prev.x) / 2;
+      const cy2 = pt.y;
+      return `${acc} C ${cx1},${cy1} ${cx2},${cy2} ${pt.x},${pt.y}`;
+    }, '');
+
+    const areaD = `${pathD} L ${coords[coords.length - 1].x},${height} L ${coords[0].x},${height} Z`;
+
+    return (
+      <div className="trend-chart-card" style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Spending Velocity</span>
+            <div style={{ fontSize: '1.4rem', fontWeight: '800', color: 'var(--text-1)', fontFamily: 'Outfit, sans-serif' }}>₹38,000.00</div>
+          </div>
+          <span className="badge income" style={{ fontSize: '0.75rem' }}>+18.4% this month</span>
+        </div>
+
+        <svg viewBox={`0 0 ${width} ${height}`} style={{ width: '100%', height: 'auto', overflow: 'visible' }}>
+          <defs>
+            <linearGradient id="trendGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#10b981" stopOpacity="0.4" />
+              <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
+            </linearGradient>
+          </defs>
+
+          {/* Area fill */}
+          <path d={areaD} fill="url(#trendGradient)" />
+
+          {/* Smooth bezier curve */}
+          <path d={pathD} fill="none" stroke="#10b981" strokeWidth="3.5" strokeLinecap="round" />
+
+          {/* Glowing pulse dots */}
+          {coords.map((pt, i) => (
+            <g key={i}>
+              <circle cx={pt.x} cy={pt.y} r="5" fill="#080c14" stroke="#10b981" strokeWidth="3" />
+              <text x={pt.x} y={height - 2} textAnchor="middle" fill="var(--text-3)" fontSize="10" fontWeight="600">{pt.label}</text>
+            </g>
+          ))}
+        </svg>
+      </div>
+    );
+  };
+
+  const renderBarChart = () => {
     const breakdown = summary.categoryBreakdown || [];
-    const total = breakdown.reduce((sum, item) => sum + item.amount, 0);
-    
-    if (total === 0) {
+    const maxAmount = breakdown.length > 0 ? Math.max(...breakdown.map(i => i.amount)) : 0;
+
+    if (breakdown.length === 0 || maxAmount === 0) {
       return (
         <div className="empty-state">
           <span className="emoji">📊</span>
@@ -212,62 +282,34 @@ export default function App() {
       );
     }
 
-    const radius = 50;
-    const strokeWidth = 12;
-    const circumference = 2 * Math.PI * radius;
-    
-    // Modern colors for charts
-    const colors = [
-      '#6366f1', // Indigo
-      '#8b5cf6', // Violet
-      '#ec4899', // Pink
-      '#f43f5e', // Rose
-      '#f59e0b', // Amber
-      '#10b981', // Emerald
-      '#06b6d4', // Cyan
-      '#3b82f6', // Blue
-      '#6b7280'  // Gray
-    ];
-
-    let currentOffset = 0;
+    const colors = ['#10b981', '#06b6d4', '#3b82f6', '#8b5cf6', '#ec4899', '#f43f5e', '#f59e0b', '#10b981', '#6b7280'];
 
     return (
-      <div className="chart-wrap" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.5rem' }}>
-        <svg width="220" height="220" viewBox="0 0 140 140" style={{ transform: 'rotate(-90deg)' }}>
-          <circle cx="70" cy="70" r={radius} fill="transparent" stroke="var(--border)" strokeWidth={strokeWidth} />
-          {breakdown.map((item, idx) => {
-            const percentage = (item.amount / total) * 100;
-            const strokeLength = (percentage / 100) * circumference;
-            const strokeOffset = circumference - strokeLength + currentOffset;
-            currentOffset -= strokeLength;
-
-            return (
-              <circle
-                key={item.category}
-                cx="70"
-                cy="70"
-                r={radius}
-                fill="transparent"
-                stroke={colors[idx % colors.length]}
-                strokeWidth={strokeWidth}
-                strokeDasharray={`${strokeLength} ${circumference}`}
-                strokeDashoffset={strokeOffset}
-                strokeLinecap="round"
-                style={{ transition: 'stroke-dasharray 0.3s ease' }}
-              />
-            );
-          })}
-        </svg>
-
-        <ul className="legend-list" style={{ width: '100%' }}>
-          {breakdown.map((item, idx) => (
-            <li key={item.category} className="legend-item">
-              <span className="legend-dot" style={{ backgroundColor: colors[idx % colors.length] }}></span>
-              <span className="legend-label">{item.category}</span>
-              <span className="legend-value">{formatINR(item.amount)}</span>
-            </li>
-          ))}
-        </ul>
+      <div className="bar-chart-container" style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '1rem', padding: '0.5rem 0' }}>
+        {breakdown.map((item, idx) => {
+          const percentage = (item.amount / maxAmount) * 100;
+          const color = colors[idx % colors.length];
+          return (
+            <div key={item.category} style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
+                <span style={{ fontWeight: '600', color: 'var(--text-1)' }}>{item.category}</span>
+                <span style={{ fontWeight: '700', fontFamily: 'Outfit, sans-serif', color: 'var(--text-1)' }}>{formatINR(item.amount)}</span>
+              </div>
+              <div style={{ width: '100%', height: '10px', background: 'rgba(255,255,255,0.06)', borderRadius: '6px', overflow: 'hidden', position: 'relative' }}>
+                <div 
+                  style={{ 
+                    width: `${percentage}%`, 
+                    height: '100%', 
+                    background: `linear-gradient(90deg, ${color}, #06b6d4)`, 
+                    borderRadius: '6px',
+                    boxShadow: `0 0 10px ${color}80`,
+                    transition: 'width 0.6s cubic-bezier(0.16, 1, 0.3, 1)'
+                  }} 
+                />
+              </div>
+            </div>
+          );
+        })}
       </div>
     );
   };
@@ -276,82 +318,155 @@ export default function App() {
   if (!user) {
     if (currentPage === 'register') {
       return (
-        <div className="auth-page">
-          <div className="auth-brand">
-            <div className="logo-mark">₹</div>
-            <h1>FinGuard</h1>
-            <p>Your beautiful financial hub</p>
+        <div className="auth-split-wrapper">
+          <div className="auth-hero-pane" style={{ backgroundImage: `linear-gradient(135deg, rgba(8, 12, 20, 0.85), rgba(15, 23, 42, 0.92)), url('/finance_hero.jpg')`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
+            <div className="hero-content">
+              <div className="logo-badge">₹</div>
+              <h2>Penny-Count Finance Hub</h2>
+              <p>Experience real-time spending intelligence, double-entry cashflow ledgering, and AI-driven budget guardrails.</p>
+              
+              <div className="hero-features">
+                <div className="feature-item">
+                  <span className="icon">🛡️</span>
+                  <div>
+                    <strong>Safe-to-Spend Guard</strong>
+                    <p>Real-time calculation protecting your upcoming bills.</p>
+                  </div>
+                </div>
+                <div className="feature-item">
+                  <span className="icon">📊</span>
+                  <div>
+                    <strong>Interactive Analytics</strong>
+                    <p>Visual category bar charts & cashflow breakdowns.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-          <form className="card form" onSubmit={handleRegister}>
-            <h3>Create Account</h3>
-            <p style={{ marginBottom: '0.5rem' }}>Sign up to start tracking your finances.</p>
-            <input 
-              type="text" 
-              placeholder="Full Name" 
-              value={regName} 
-              onChange={e => setRegName(e.target.value)} 
-              required 
-            />
-            <input 
-              type="email" 
-              placeholder="Email Address" 
-              value={regEmail} 
-              onChange={e => setRegEmail(e.target.value)} 
-              required 
-            />
-            <input 
-              type="password" 
-              placeholder="Password (min 6 chars)" 
-              value={regPassword} 
-              onChange={e => setRegPassword(e.target.value)} 
-              minLength="6" 
-              required 
-            />
-            <button type="submit" className="btn-primary">Register</button>
-            <p style={{ textAlign: 'center', marginTop: '0.5rem', fontSize: '0.8rem' }}>
-              Already have an account?{' '}
-              <a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage('login'); }}>
-                Login here
-              </a>
-            </p>
-          </form>
+
+          <div className="auth-form-pane">
+            <div className="auth-card-inner">
+              <div className="auth-header">
+                <h2>Create Your Account</h2>
+                <p>Join Penny-Count to simplify your financial management.</p>
+              </div>
+
+              <form className="form" onSubmit={handleRegister}>
+                <div className="input-group">
+                  <label>Full Name</label>
+                  <input 
+                    type="text" 
+                    placeholder="John Doe" 
+                    value={regName} 
+                    onChange={e => setRegName(e.target.value)} 
+                    required 
+                  />
+                </div>
+                <div className="input-group">
+                  <label>Email Address</label>
+                  <input 
+                    type="email" 
+                    placeholder="name@example.com" 
+                    value={regEmail} 
+                    onChange={e => setRegEmail(e.target.value)} 
+                    required 
+                  />
+                </div>
+                <div className="input-group">
+                  <label>Password</label>
+                  <input 
+                    type="password" 
+                    placeholder="••••••••" 
+                    value={regPassword} 
+                    onChange={e => setRegPassword(e.target.value)} 
+                    minLength="6" 
+                    required 
+                  />
+                </div>
+
+                <button type="submit" className="btn-primary-glow">Create Account</button>
+                
+                <p className="auth-switch-text">
+                  Already registered?{' '}
+                  <a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage('login'); }}>
+                    Sign in here
+                  </a>
+                </p>
+              </form>
+            </div>
+          </div>
           {toast && <div className={`toast ${toast.type}`}>{toast.message}</div>}
         </div>
       );
     }
 
     return (
-      <div className="auth-page">
-        <div className="auth-brand">
-          <div className="logo-mark">₹</div>
-          <h1>FinGuard</h1>
-          <p>Your beautiful financial hub</p>
+      <div className="auth-split-wrapper">
+        <div className="auth-hero-pane" style={{ backgroundImage: `linear-gradient(135deg, rgba(8, 12, 20, 0.85), rgba(15, 23, 42, 0.92)), url('/finance_hero.jpg')`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
+          <div className="hero-content">
+            <div className="logo-badge">₹</div>
+            <h2>Penny-Count Finance Hub</h2>
+            <p>Your intelligent, high-precision financial dashboard with real-time budget guardrails.</p>
+            
+            <div className="hero-features">
+              <div className="feature-item">
+                <span className="icon">⚡</span>
+                <div>
+                  <strong>Instant Sample Seeding</strong>
+                  <p>Load instant demo transactions to test cashflow scenarios.</p>
+                </div>
+              </div>
+              <div className="feature-item">
+                <span className="icon">🔐</span>
+                <div>
+                  <strong>Bank-Grade Security</strong>
+                  <p>Stateless JWT authentication & encrypted password hashes.</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-        <form className="card form" onSubmit={handleLogin}>
-          <h3>Sign In</h3>
-          <p style={{ marginBottom: '0.5rem' }}>Enter your credentials to access your dashboard.</p>
-          <input 
-            type="email" 
-            placeholder="Email Address" 
-            value={loginEmail} 
-            onChange={e => setLoginEmail(e.target.value)} 
-            required 
-          />
-          <input 
-            type="password" 
-            placeholder="Password" 
-            value={loginPassword} 
-            onChange={e => setLoginPassword(e.target.value)} 
-            required 
-          />
-          <button type="submit" className="btn-primary">Login</button>
-          <p style={{ textAlign: 'center', marginTop: '0.5rem', fontSize: '0.8rem' }}>
-            New to FinGuard?{' '}
-            <a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage('register'); }}>
-              Create an account
-            </a>
-          </p>
-        </form>
+
+        <div className="auth-form-pane">
+          <div className="auth-card-inner">
+            <div className="auth-header">
+              <h2>Sign In to Penny-Count</h2>
+              <p>Enter your details below to access your financial hub.</p>
+            </div>
+
+            <form className="form" onSubmit={handleLogin}>
+              <div className="input-group">
+                <label>Email Address</label>
+                <input 
+                  type="email" 
+                  placeholder="name@example.com" 
+                  value={loginEmail} 
+                  onChange={e => setLoginEmail(e.target.value)} 
+                  required 
+                />
+              </div>
+              <div className="input-group">
+                <label>Password</label>
+                <input 
+                  type="password" 
+                  placeholder="••••••••" 
+                  value={loginPassword} 
+                  onChange={e => setLoginPassword(e.target.value)} 
+                  required 
+                />
+              </div>
+
+              <button type="submit" className="btn-primary-glow">Sign In</button>
+
+              <p className="auth-switch-text">
+                New to Penny-Count?{' '}
+                <a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage('register'); }}>
+                  Create an account
+                </a>
+              </p>
+            </form>
+          </div>
+        </div>
         {toast && <div className={`toast ${toast.type}`}>{toast.message}</div>}
       </div>
     );
@@ -364,7 +479,7 @@ export default function App() {
       <aside className="sidebar">
         <div className="sidebar-brand">
           <div className="logo-mark">₹</div>
-          <span>FinGuard</span>
+          <span>Penny-Count</span>
         </div>
         
         <nav>
@@ -527,11 +642,16 @@ export default function App() {
               </div>
             </div>
 
-            {/* Visual breakdown and Recent Transactions */}
-            <div className="chart-section">
+            {/* Visual breakdown, Trend Chart, and Recent Transactions */}
+            <div className="chart-section" style={{ gridTemplateColumns: '1fr 1fr 1fr' }}>
               <div className="card chart-card">
-                <h3>Expense Breakdown by Category</h3>
-                {renderDonutChart()}
+                <h3>Cashflow Trend</h3>
+                {renderTrendChart()}
+              </div>
+
+              <div className="card chart-card">
+                <h3>Expense Breakdown</h3>
+                {renderBarChart()}
               </div>
 
               <div className="card chart-card">
@@ -578,12 +698,25 @@ export default function App() {
                     <option value="income">Income</option>
                     <option value="expense">Expense</option>
                   </select>
-                  <input 
-                    type="month" 
-                    value={filterMonth} 
-                    onChange={e => setFilterMonth(e.target.value)} 
-                    style={{ width: 'auto', display: 'inline-block' }} 
-                  />
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <input 
+                      type="month" 
+                      value={filterMonth} 
+                      onChange={e => setFilterMonth(e.target.value)} 
+                      onClick={(e) => { try { e.target.showPicker(); } catch (err) {} }}
+                      style={{ width: 'auto', display: 'inline-block', cursor: 'pointer' }} 
+                    />
+                    {filterMonth && (
+                      <button 
+                        type="button"
+                        className="btn-ghost"
+                        onClick={() => setFilterMonth('')}
+                        style={{ padding: '0.4rem 0.6rem', fontSize: '0.75rem', borderRadius: '8px' }}
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
