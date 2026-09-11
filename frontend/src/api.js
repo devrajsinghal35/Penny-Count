@@ -1,4 +1,13 @@
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5002/api';
+function getBaseUrl() {
+  let url = (import.meta.env.VITE_API_URL || "http://localhost:5002/api").trim();
+  url = url.replace(/\/+$/, "");
+  if (!url.endsWith("/api")) {
+    url += "/api";
+  }
+  return url;
+}
+
+const BASE_URL = getBaseUrl();
 
 
 export function getToken() {

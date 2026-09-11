@@ -18,7 +18,7 @@ def create_app(config_class=Config):
     app.config.from_object(config_class)
 
     # Enable CORS for all routes (necessary for React app integration)
-    CORS(app, resources={r"/api/*": {"origins": "*"}})
+    CORS(app, resources={r"/*": {"origins": "*"}}, allow_headers=["Content-Type", "Authorization"], methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
 
     # Ensure the database directory exists
     db_path = os.path.join(os.path.dirname(__file__), 'database')
