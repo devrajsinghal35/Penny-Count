@@ -142,7 +142,15 @@ export default function App() {
       try {
         await api.post('/transactions/clear-all');
       } catch {
-        await api.post('/transactions/clear');
+        try {
+          await api.post('/transactions/clear');
+        } catch {
+          // Fallback: delete items individually if server endpoint is deploying
+          const list = await api.get('/transactions');
+          if (Array.isArray(list) && list.length > 0) {
+            await Promise.all(list.map(tx => api.delete(`/transactions/${tx.id}`)));
+          }
+        }
       }
       setTransactions([]);
       setSummary({ income: 0, expense: 0, balance: 0, categoryBreakdown: [] });

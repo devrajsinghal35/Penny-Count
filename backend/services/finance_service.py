@@ -402,6 +402,8 @@ def seed_demo_data(user_id: int) -> bool:
 def clear_user_data(user_id: int) -> bool:
     """Clear all transactions for the specified user."""
     from models.transaction import Transaction
-    Transaction.query.filter_by(user_id=user_id).delete()
+    txs = Transaction.query.filter_by(user_id=user_id).all()
+    for tx in txs:
+        db.session.delete(tx)
     db.session.commit()
     return True
