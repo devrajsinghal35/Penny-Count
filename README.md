@@ -1,111 +1,77 @@
-# 💰 Penny-Count — Personal Finance & Spending Intelligence
+# 💰 Penny-Count — Personal Finance & Spending Intelligence Platform
 
-A modern, high-performance personal finance tracking and spending intelligence platform built with a **React Single-Page Application** (Vite, Custom Cyber-Emerald CSS) and a **Python Flask REST API** (SQLAlchemy ORM, SQLite, JWT Authentication).
+A full-stack personal finance tracker that goes beyond simple expense logging — it calculates a real-time Safe-to-Spend limit by factoring in fixed commitments, upcoming bills, and a built-in safety buffer, then warns users before they overspend.
+
+**Live Demo**: *[Add Link]* | **Repo**: [devrajsinghal35/Penny-Count](https://github.com/devrajsinghal35/Penny-Count)
 
 ---
 
-## 🌟 Architectural Overview: Why Vercel & Render?
+## 🧠 Why This Project Stands Out
 
-Penny-Count is designed as a **decoupled micro-service architecture**, separating the frontend client interface from the backend financial intelligence engine. This decoupled approach offers high performance, security, global availability, and cost-effective scaling:
+- **Decoupled Microservice Architecture**: Designed and shipped a React SPA on Vercel + Flask REST API on Render rather than a monolith — mirrors how production fintech systems are actually deployed.
+- **Safe-to-Spend Engine**: A rules-based financial model, not just CRUD — computes daily spending limits from income, fixed costs, and upcoming bills with a 10% safety margin.
+- **Stateless JWT Authentication**: Implemented end-to-end with secure password hashing (Werkzeug) and protected REST endpoints.
+- **Automated Deployment Pipeline**: Infrastructure-as-Code (`render.yaml` Blueprint) and environment-based configuration (`VITE_API_URL`).
 
-```
-┌─────────────────────────────────────────┐               ┌─────────────────────────────────────────┐
-│           FRONTEND (Vercel)             │               │            BACKEND (Render)             │
-│                                         │               │                                         │
-│   React SPA (Vite) + Cyber-Emerald CSS  │ ───REST/JWT──►│   Python Flask API + Gunicorn Server    │
-│   • Global Edge CDN Distribution        │   Over HTTPS  │   • Safe-to-Spend Intelligence Engine   │
-│   • vercel.json SPA Rewrites            │               │   • render.yaml Infrastructure Blueprint│
-│   • Environment Injection (VITE_API_URL)│               │   • SQLAlchemy ORM & SQLite Persistence │
-└─────────────────────────────────────────┘               └─────────────────────────────────────────┘
-```
+---
 
-### ⚡ Why Frontend on Vercel?
-* **Optimized Single-Page App Delivery**: Vercel is purpose-built for frontend applications. It provides instant global CDN edge distribution for static assets compiled by Vite (`npm run build`).
-* **Seamless SPA Routing**: Configured via `frontend/vercel.json` with rewrite rules so client-side React routes (`/`, `/transactions`, `/dashboard`) reload cleanly without triggering server 404 errors.
-* **Environment Variable Injection**: Supports `VITE_API_URL` to connect the production React frontend dynamically to the backend API hosted on Render.
+## 🛠️ Tech Stack
 
-### 🐍 Why Backend on Render?
-* **Native Python WSGI Web Hosting**: Render provides robust native support for Python web services powered by `gunicorn wsgi:app`.
-* **Infrastructure-as-Code (`render.yaml`)**: Includes a pre-configured Render Blueprint (`render.yaml`) that automates build steps (`pip install -r requirements.txt`), environment setup, and deployment.
-* **CORS & JWT Security**: Configured with `flask-cors` to allow cross-origin API requests securely from the Vercel domain while protecting endpoints with JWT Bearer authentication headers.
+| Layer | Technologies |
+| --- | --- |
+| **Frontend** | React (Vite), custom "Cyber-Emerald" CSS design system |
+| **Backend** | Python, Flask, Gunicorn |
+| **Database / ORM** | SQLite, SQLAlchemy |
+| **Auth** | JWT (PyJWT), Werkzeug password hashing |
+| **Hosting** | Vercel (frontend), Render (backend) |
+| **Infra** | `render.yaml` Blueprint, `vercel.json` SPA routing |
 
 ---
 
 ## ✨ Key Features
 
-- **Safe-to-Spend Engine 🛡️**: Calculates exact daily safe spending limits after accounting for fixed monthly commitments, upcoming bills, and a 10% safety buffer.
-- **Real-Time Guardrails**: Live warnings inside the transaction flow before saving an expense if it exceeds the daily safe spending threshold.
-- **Double-Entry Style Ledger**: Dynamic CRUD management for income, expenses, and cashflows with automatic categorization.
-- **Interactive Visual Analytics**: Transparent popovers, spending trends, and visual breakdown charts.
-- **Stateless JWT Security**: Secure password hashing with Werkzeug and stateless authentication tokens via PyJWT.
-- **Instant Sample Data Generator**: A single-click demo seeder that populates realistic financial transactions for testing.
+- **🛡️ Safe-to-Spend Engine** — daily safe spending limit calculated from fixed monthly commitments, upcoming bills, and a 10% safety buffer.
+- **🚦 Real-Time Guardrails** — live warnings before saving a transaction that would exceed the daily threshold.
+- **📒 Double-Entry Style Ledger** — full CRUD for income, expenses, and cashflows with automatic categorization.
+- **📊 Interactive Visual Analytics** — spending trends and breakdown charts with transparent popovers.
+- **🌱 Instant Sample Data Generator** — one-click demo seeder for realistic test data.
+
+---
+
+## 🏗️ Architecture
+
+```
+React SPA (Vercel) ──REST + JWT over HTTPS──► Flask API (Render) ──► SQLAlchemy / SQLite
+```
+
+- **Frontend (Vercel)**: Global CDN edge delivery, SPA rewrite rules for client-side routing, `VITE_API_URL` injected at build time.
+- **Backend (Render)**: Python WSGI service via `gunicorn wsgi:app`, deployed from a `render.yaml` Blueprint, `flask-cors` locked to the Vercel domain.
 
 ---
 
 ## 🛠️ Local Development Setup
 
-### 1. Backend Setup (Flask API)
+### Backend
 ```bash
 cd backend
-
-# Create & activate virtual environment
-python3 -m venv venv
-source venv/bin/activate    # On Windows: venv\Scripts\activate
-
-# Install dependencies
+python3 -m venv venv && source venv/bin/activate # Windows: venv\Scripts\activate
 pip install -r requirements.txt
-
-# Run backend development server
-python3 app.py
+python3 app.py # runs at http://localhost:5000
 ```
-*Backend API runs locally at `http://localhost:5000` (or `http://localhost:5002`).*
 
-### 2. Frontend Setup (React SPA)
+### Frontend
 ```bash
 cd frontend
-
-# Install dependencies
 npm install
-
-# Start Vite development server
-npm run dev
+npm run dev # runs at http://localhost:5173
 ```
-*Frontend UI runs locally at `http://localhost:5173`.*
 
 ---
 
-## 🚀 Production Deployment Guide
+## 🚀 Deployment
 
-### Step 1: Deploy Backend to Render (Python Flask API)
-
-1. Log into your [Render Dashboard](https://dashboard.render.com).
-2. Click **New +** and choose **Blueprint**.
-3. Connect your repository: `devrajsinghal35/Penny-Count`.
-4. Render detects `render.yaml` automatically:
-   * **Root Directory**: `backend`
-   * **Environment**: `Python`
-   * **Build Command**: `pip install -r requirements.txt`
-   * **Start Command**: `gunicorn wsgi:app`
-5. In **Environment Variables**, add:
-   * `SECRET_KEY`: Set a secure random key.
-   * `PYTHON_VERSION`: `3.11.5`
-6. Deploy the web service. Render will provide your production API URL (e.g. `https://penny-count-backend.onrender.com`).
-
----
-
-### Step 2: Deploy Frontend to Vercel (React SPA)
-
-1. Log into your [Vercel Dashboard](https://vercel.com).
-2. Click **Add New...** -> **Project**.
-3. Select your repository: `devrajsinghal35/Penny-Count`.
-4. Configure Project Settings:
-   * **Framework Preset**: `Vite`
-   * **Root Directory**: `frontend`
-   * **Build Command**: `npm run build`
-   * **Output Directory**: `dist`
-5. Add **Environment Variable**:
-   * `VITE_API_URL` = `https://penny-count-backend.onrender.com/api` *(replace with your actual Render API URL)*
-6. Click **Deploy**. Vercel will host your live application!
+- **Backend → Render**: New Blueprint → connect repo → Render auto-detects `render.yaml` (root: `backend`, build: `pip install -r requirements.txt`, start: `gunicorn wsgi:app`) → set `SECRET_KEY` and `PYTHON_VERSION`.
+- **Frontend → Vercel**: New Project → connect repo → root: `frontend`, framework: `Vite`, build: `npm run build`, output: `dist` → set `VITE_API_URL` to the deployed Render API URL.
 
 ---
 
@@ -113,28 +79,24 @@ npm run dev
 
 ```
 Penny-Count/
-├── render.yaml               # Render Infrastructure-as-Code Blueprint
-├── README.md                 # Project Overview & Deployment Guide
-├── backend/                  # Flask REST API Microservice
-│   ├── app.py                # Flask app factory & CORS configuration
-│   ├── config.py             # Database & security settings
-│   ├── requirements.txt      # Dependencies (Flask, SQLAlchemy, PyJWT, Gunicorn)
-│   ├── wsgi.py               # Production WSGI entry point
-│   ├── models/               # SQLAlchemy ORM models (User, Transaction)
-│   ├── routes/               # REST API blueprints (Auth, Transactions)
-│   └── services/             # Finance Service & Safe-to-Spend logic
-└── frontend/                 # React SPA (Vite)
-    ├── package.json          # Dependencies & build scripts
-    ├── vercel.json           # Vercel SPA routing rewrite rules
-    ├── vite.config.js        # Vite configuration
+├── render.yaml
+├── backend/
+│   ├── app.py          # Flask app factory & CORS config
+│   ├── config.py       # Database & security settings
+│   ├── wsgi.py         # Production WSGI entry point
+│   ├── models/         # SQLAlchemy ORM models
+│   ├── routes/         # REST API blueprints
+│   └── services/       # Safe-to-Spend business logic
+└── frontend/
+    ├── vercel.json     # SPA routing rewrites
     └── src/
-        ├── api.js            # Unified fetch client with VITE_API_URL & Bearer auth
-        ├── index.css         # Cyber-Emerald design system & animations
-        └── App.jsx           # Views, state management, and UI components
+        ├── api.js      # Fetch client with JWT auth
+        ├── index.css   # Design system
+        └── App.jsx     # Views & state management
 ```
 
 ---
 
 ## 📄 License
 
-MIT License. Designed & Developed by [devrajsinghal35](https://github.com/devrajsinghal35).
+MIT License · Built by [devrajsinghal35](https://github.com/devrajsinghal35)
