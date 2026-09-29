@@ -1,0 +1,54 @@
+name: DevSecOps Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  security-and-linting:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.10"
+        cache: 'pip'
+
+    - name: Install backend dependencies
+      run: |
+        cd backend
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install bandit safety pytest
+
+    - name: Python SAST (Bandit)
+      run: |
+        cd backend
+        bandit -r . -x ./venv,./tests -ll -ii
+
+    - name: Dependency Vulnerability Audit (Safety)
+      run: |
+        cd backend
+        safety check -r requirements.txt || echo "Safety check found issues, review them."
+
+    # Uncomment when tests are added
+    # - name: Run Unit Tests
+    #   run: |
+    #     cd backend
+    #     pytest
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
+
+    - name: Frontend Dependency Vulnerability Audit (npm audit)
+      run: |
+        cd frontend
+        npm audit || echo "npm audit found vulnerabilities, review them."

@@ -11,6 +11,7 @@ from models.transaction import Transaction  # noqa: F401
 # Import blueprints
 from routes.auth import auth_bp
 from routes.transactions import transactions_bp
+from routes.ai_assistant import ai_bp
 
 
 def create_app(config_class=Config):
@@ -30,6 +31,7 @@ def create_app(config_class=Config):
     # Register blueprints
     app.register_blueprint(auth_bp)
     app.register_blueprint(transactions_bp)
+    app.register_blueprint(ai_bp, url_prefix='/api/ai')
 
     # Create all database tables (safe to call repeatedly)
     with app.app_context():
@@ -41,5 +43,6 @@ def create_app(config_class=Config):
 # ── Entry point ────────────────────────────────────────────────────────────
 if __name__ == '__main__':
     app = create_app()
-    print('\n🚀  Finance Tracker API running at http://localhost:5000\n')
-    app.run(debug=True, port=5000)
+    debug_mode = os.environ.get('FLASK_DEBUG', 'false').lower() in ('true', '1')
+    print('\n🚀  Finance Tracker API running at http://127.0.0.1:5055\n')
+    app.run(host='0.0.0.0', debug=debug_mode, port=5055)
