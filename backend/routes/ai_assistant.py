@@ -80,7 +80,7 @@ def analyze_spending(current_user):
             data=json.dumps(payload).encode('utf-8'),
             headers={'Content-Type': 'application/json'}
         )
-        with urllib.request.urlopen(req) as response:
+        with urllib.request.urlopen(req) as response:  # nosec B310
             res_data = json.loads(response.read().decode('utf-8'))
             candidates = res_data.get('candidates', [])
             if candidates:

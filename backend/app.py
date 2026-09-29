@@ -44,5 +44,6 @@ def create_app(config_class=Config):
 if __name__ == '__main__':
     app = create_app()
     debug_mode = os.environ.get('FLASK_DEBUG', 'false').lower() in ('true', '1')
+    host_mode = os.environ.get('FLASK_HOST', '127.0.0.1')
     print('\n🚀  Finance Tracker API running at http://127.0.0.1:5055\n')
-    app.run(host='0.0.0.0', debug=debug_mode, port=5055)
+    app.run(host=host_mode, debug=debug_mode, port=5055)
