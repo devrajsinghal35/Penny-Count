@@ -25,6 +25,12 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
 
+  // --- AI Assistant State ---
+  const [showAiModal, setShowAiModal] = useState(false);
+  const [aiQuery, setAiQuery] = useState('');
+  const [aiResponse, setAiResponse] = useState('');
+  const [aiLoading, setAiLoading] = useState(false);
+
   // --- Filters ---
   const [filterType, setFilterType] = useState('all');
   const [filterMonth, setFilterMonth] = useState('');
@@ -45,6 +51,22 @@ export default function App() {
   const showToast = (message, type = 'success') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
+  };
+
+  // --- AI Analysis Handler ---
+  const handleRunAiAnalysis = async (customQuery) => {
+    const queryToUse = customQuery || aiQuery || "Analyze my spending for potential security risks, anomalies, or overspending.";
+    if (customQuery) setAiQuery(customQuery);
+    setAiLoading(true);
+    setAiResponse('');
+    try {
+      const res = await api.post('/ai/analyze-spending', { query: queryToUse });
+      setAiResponse(res.response || 'No response generated.');
+    } catch (err) {
+      setAiResponse(`Error running AI analysis: ${err.message}`);
+    } finally {
+      setAiLoading(false);
+    }
   };
 
   // --- Load Data ---
@@ -593,6 +615,22 @@ export default function App() {
               </div>
               <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                 <button 
+                  className="btn-primary-glow" 
+                  onClick={() => setShowAiModal(true)} 
+                  style={{ 
+                    padding: '0.5rem 1rem', 
+                    borderRadius: '8px', 
+                    fontSize: '0.9rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    background: 'linear-gradient(135deg, #06b6d4, #10b981)',
+                    boxShadow: '0 0 15px rgba(6, 182, 212, 0.4)'
+                  }}
+                >
+                  🤖 AI Security & Spending Assistant
+                </button>
+                <button 
                   className="btn-ghost" 
                   onClick={handleLoadDemo} 
                   style={{ 
@@ -987,6 +1025,81 @@ export default function App() {
           </>
         )}
       </main>
+
+      {/* AI Assistant Modal */}
+      {showAiModal && (
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(8px)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, padding: '1rem' }}>
+          <div style={{ background: 'var(--bg-2)', border: '1px solid var(--border)', borderRadius: '16px', maxWidth: '650px', width: '100%', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', boxShadow: '0 20px 50px rgba(0,0,0,0.8)' }}>
+            
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <div style={{ fontSize: '1.5rem', background: 'rgba(6, 182, 212, 0.15)', padding: '0.4rem 0.6rem', borderRadius: '10px' }}>🤖</div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1.15rem', color: 'var(--text-1)' }}>AI Security & Spending Assistant</h3>
+                  <span style={{ fontSize: '0.75rem', color: '#10b981', fontWeight: '600' }}>🔒 AES-256 PII Privacy Guardrail Active</span>
+                </div>
+              </div>
+              <button onClick={() => setShowAiModal(false)} style={{ background: 'none', border: 'none', color: 'var(--text-2)', fontSize: '1.2rem', cursor: 'pointer' }}>✕</button>
+            </div>
+
+            <div style={{ fontSize: '0.85rem', color: 'var(--text-2)' }}>
+              Ask our intelligent agent to audit your transactions for suspicious charges, subscription scams, or spending velocity spikes.
+            </div>
+
+            {/* Quick Prompts */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+              <button 
+                className="btn-ghost" 
+                style={{ fontSize: '0.75rem', padding: '0.3rem 0.6rem', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)' }}
+                onClick={() => handleRunAiAnalysis("Analyze my spending for potential security risks or anomalous high charges.")}
+              >
+                🚨 Detect Suspicious Charges
+              </button>
+              <button 
+                className="btn-ghost" 
+                style={{ fontSize: '0.75rem', padding: '0.3rem 0.6rem', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)' }}
+                onClick={() => handleRunAiAnalysis("Am I spending too much on entertainment or food this month?")}
+              >
+                📊 Category Budget Review
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+              <input 
+                type="text" 
+                placeholder="Ask AI anything about your finances..." 
+                value={aiQuery} 
+                onChange={e => setAiQuery(e.target.value)} 
+                style={{ flex: 1, width: '100%', padding: '0.75rem', borderRadius: '8px', background: 'var(--bg-3)', border: '1px solid var(--border)', color: 'var(--text-1)' }}
+                onKeyDown={e => e.key === 'Enter' && handleRunAiAnalysis()}
+              />
+              <button 
+                className="btn-primary-glow" 
+                onClick={() => handleRunAiAnalysis()} 
+                disabled={aiLoading}
+                style={{ padding: '0.75rem 1.25rem', borderRadius: '8px', background: 'linear-gradient(135deg, #06b6d4, #10b981)', whiteSpace: 'nowrap', flexShrink: 0 }}
+              >
+                {aiLoading ? 'Analyzing...' : 'Run Analysis'}
+              </button>
+            </div>
+
+            {/* AI Output Response Area */}
+            {aiLoading && (
+              <div style={{ padding: '1.5rem', textAlign: 'center', color: 'var(--text-2)' }}>
+                <div className="spinner" style={{ margin: '0 auto 0.75rem auto' }}></div>
+                Running AI financial analysis & privacy filter...
+              </div>
+            )}
+
+            {aiResponse && !aiLoading && (
+              <div style={{ padding: '1rem', background: 'var(--bg-3)', borderRadius: '10px', border: '1px solid rgba(16, 185, 129, 0.3)', maxHeight: '250px', overflowY: 'auto', fontSize: '0.85rem', lineHeight: '1.5', color: 'var(--text-1)', whiteSpace: 'pre-line' }}>
+                {aiResponse}
+              </div>
+            )}
+
+          </div>
+        </div>
+      )}
 
       {/* Toast Alert popup */}
       {toast && <div className={`toast ${toast.type}`}>{toast.message}</div>}

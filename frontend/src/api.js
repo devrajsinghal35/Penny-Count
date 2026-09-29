@@ -1,5 +1,5 @@
 function getBaseUrl() {
-  let url = (import.meta.env.VITE_API_URL || "http://localhost:5002/api").trim();
+  let url = (import.meta.env.VITE_API_URL || "http://127.0.0.1:5055/api").trim();
   url = url.replace(/\/+$/, "");
   if (!url.endsWith("/api")) {
     url += "/api";
