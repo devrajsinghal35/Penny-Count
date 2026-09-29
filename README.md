@@ -2,7 +2,7 @@
 
 A full-stack, secure-by-design personal finance tracker that computes real-time Safe-to-Spend limits using a rules-based financial model. It features AI-assisted spending analysis, field-level data encryption (AES-256), and a robust DevSecOps CI/CD pipeline.
 
-**Live Demo**: penny-count.vercel.app/ | **Repo**: [devrajsinghal35/Penny-Count](https://github.com/devrajsinghal35/Penny-Count)
+**Live API**: [penny-count-backend.onrender.com](https://penny-count-backend.onrender.com) | **Repo**: [devrajsinghal35/Penny-Count](https://github.com/devrajsinghal35/Penny-Count)
 
 ---
 
