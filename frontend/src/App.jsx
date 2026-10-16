@@ -2,21 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { api, getToken, setToken, clearToken, getUser, setUser, clearUser, formatINR } from './api';
 
 export default function App() {
-  // --- Auth State ---
   const [user, setAuthState] = useState(getUser());
   const [token, setTokenState] = useState(getToken());
-  
-  // --- Navigation State ---
+
   const [currentPage, setCurrentPage] = useState(user ? 'dashboard' : 'login');
-  
-  // --- Form States (Auth) ---
+
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [regName, setRegName] = useState('');
   const [regEmail, setRegEmail] = useState('');
   const [regPassword, setRegPassword] = useState('');
 
-  // --- Dashboard & Transactions State ---
   const [summary, setSummary] = useState({ income: 0, expense: 0, balance: 0, categoryBreakdown: [] });
   const [transactions, setTransactions] = useState([]);
   const [safeToSpend, setSafeToSpend] = useState(null);
@@ -25,18 +21,15 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
 
-  // --- AI Assistant State ---
   const [showAiModal, setShowAiModal] = useState(false);
   const [aiQuery, setAiQuery] = useState('');
   const [aiResponse, setAiResponse] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
 
-  // --- Filters ---
   const [filterType, setFilterType] = useState('all');
   const [filterMonth, setFilterMonth] = useState('');
 
-  // --- Transaction Form State (Add / Edit) ---
-  const [txId, setTxId] = useState(null); // null for Add, number for Edit
+  const [txId, setTxId] = useState(null);
   const [txTitle, setTxTitle] = useState('');
   const [txAmount, setTxAmount] = useState('');
   const [txType, setTxType] = useState('expense');
@@ -44,16 +37,13 @@ export default function App() {
   const [txDescription, setTxDescription] = useState('');
   const [txDate, setTxDate] = useState(new Date().toISOString().split('T')[0]);
 
-  // Categories list
   const categories = ['Food', 'Shopping', 'Entertainment', 'Housing', 'Utilities', 'Travel', 'Salary', 'Investment', 'Other'];
 
-  // --- Toast Helper ---
   const showToast = (message, type = 'success') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
   };
 
-  // --- AI Analysis Handler ---
   const handleRunAiAnalysis = async (customQuery) => {
     const queryToUse = customQuery || aiQuery || "Analyze my spending for potential security risks, anomalies, or overspending.";
     if (customQuery) setAiQuery(customQuery);
@@ -69,7 +59,6 @@ export default function App() {
     }
   };
 
-  // --- Load Data ---
   const loadData = async () => {
     if (!token) return;
     setLoading(true);
@@ -78,7 +67,6 @@ export default function App() {
       setSummary(summaryData);
       
       const safeData = await api.get('/financial/safe-to-spend');
-      console.log('Safe to Spend API response:', safeData);
       setSafeToSpend(safeData);
       
       const queryParams = [];
@@ -101,7 +89,6 @@ export default function App() {
     }
   }, [user, filterType, filterMonth]);
 
-  // --- Auth Handlers ---
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
@@ -167,7 +154,6 @@ export default function App() {
         try {
           await api.post('/transactions/clear');
         } catch {
-          // Fallback: delete items individually if server endpoint is deploying
           const list = await api.get('/transactions');
           if (Array.isArray(list) && list.length > 0) {
             await Promise.all(list.map(tx => api.delete(`/transactions/${tx.id}`)));
@@ -188,7 +174,6 @@ export default function App() {
     }
   };
 
-  // --- Transaction Handlers ---
   const handleSaveTransaction = async (e) => {
     e.preventDefault();
     const payload = {
@@ -202,16 +187,13 @@ export default function App() {
 
     try {
       if (txId) {
-        // Edit Mode
         await api.put(`/transactions/${txId}`, payload);
         showToast('Transaction updated successfully.');
       } else {
-        // Add Mode
         await api.post('/transactions', payload);
         showToast('Transaction added successfully.');
       }
       
-      // Reset Form
       resetTransactionForm();
       loadData();
     } catch (err) {
@@ -253,12 +235,10 @@ export default function App() {
     setTxDate(new Date().toISOString().split('T')[0]);
   };
 
-  // --- SVG Chart Helpers ---
   const renderTrendChart = () => {
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const now = new Date();
     
-    // Generate last 6 rolling months array
     const months = [];
     for (let i = 5; i >= 0; i--) {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
@@ -270,7 +250,6 @@ export default function App() {
       });
     }
 
-    // Accumulate actual expense amounts from live transactions
     (transactions || []).forEach(tx => {
       if (tx.type === 'expense' && tx.date) {
         const parts = tx.date.split('-');
@@ -342,13 +321,8 @@ export default function App() {
             </linearGradient>
           </defs>
 
-          {/* Area fill */}
           <path d={areaD} fill="url(#trendGradient)" />
-
-          {/* Smooth bezier curve */}
           <path d={pathD} fill="none" stroke="#10b981" strokeWidth="3.5" strokeLinecap="round" />
-
-          {/* Glowing pulse dots */}
           {coords.map((pt, i) => (
             <g key={i}>
               <circle cx={pt.x} cy={pt.y} r="5" fill="#080c14" stroke="#10b981" strokeWidth="3" />
@@ -405,7 +379,6 @@ export default function App() {
     );
   };
 
-  // --- Auth Render Screens ---
   if (!user) {
     if (currentPage === 'register') {
       return (
@@ -563,10 +536,8 @@ export default function App() {
     );
   }
 
-  // --- Main Application Layout ---
   return (
     <div className="page-shell">
-      {/* Sidebar */}
       <aside className="sidebar">
         <div className="sidebar-brand">
           <div className="logo-mark">₹</div>
@@ -603,7 +574,6 @@ export default function App() {
         </div>
       </aside>
 
-      {/* Main Content Pane */}
       <main className="content">
         
         {currentPage === 'dashboard' && (
@@ -665,7 +635,6 @@ export default function App() {
               </div>
             </div>
 
-            {/* Safe-to-Spend Feature */}
             {safeToSpend && (
               <div className="card safe-to-spend-card" style={{ marginBottom: '1.5rem', background: 'linear-gradient(135deg, var(--bg-2), var(--bg-3))', border: '1px solid var(--border)', position: 'relative' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
@@ -748,7 +717,6 @@ export default function App() {
               </div>
             )}
 
-            {/* KPI Cards */}
             <div className="summary-grid">
               <div className="summary-card income">
                 <span className="card-label">Total Income</span>
@@ -767,7 +735,6 @@ export default function App() {
               </div>
             </div>
 
-            {/* Visual breakdown, Trend Chart, and Recent Transactions */}
             <div className="chart-section" style={{ gridTemplateColumns: '1fr 1fr 1fr' }}>
               <div className="card chart-card">
                 <h3>Cashflow Trend</h3>
@@ -863,7 +830,7 @@ export default function App() {
                       type="month" 
                       value={filterMonth} 
                       onChange={e => setFilterMonth(e.target.value)} 
-                      onClick={(e) => { try { e.target.showPicker(); } catch (err) {} }}
+                      onClick={(e) => { try { e.target.showPicker(); } catch {} }}
                       style={{ width: 'auto', display: 'inline-block', cursor: 'pointer' }} 
                     />
                     {filterMonth && (
@@ -882,7 +849,6 @@ export default function App() {
             </div>
 
             <div className="transactions-grid">
-              {/* Form Side */}
               <div className="card">
                 <form onSubmit={handleSaveTransaction} className="form" style={{ maxWidth: '100%' }}>
                   <h3>{txId ? 'Modify Record' : 'Add Transaction'}</h3>
@@ -945,7 +911,6 @@ export default function App() {
                     rows="2"
                   />
 
-                  {/* Safe-to-Spend Warning */}
                   {txType === 'expense' && txAmount && safeToSpend && (
                     <div style={{ 
                       marginTop: '1rem', 
@@ -976,7 +941,6 @@ export default function App() {
                 </form>
               </div>
 
-              {/* Transactions List Side */}
               <div className="card">
                 <h3>Cashflow Records</h3>
                 
@@ -1026,7 +990,6 @@ export default function App() {
         )}
       </main>
 
-      {/* AI Assistant Modal */}
       {showAiModal && (
         <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(8px)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, padding: '1rem' }}>
           <div style={{ background: 'var(--bg-2)', border: '1px solid var(--border)', borderRadius: '16px', maxWidth: '650px', width: '100%', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', boxShadow: '0 20px 50px rgba(0,0,0,0.8)' }}>
@@ -1046,7 +1009,6 @@ export default function App() {
               Ask our intelligent agent to audit your transactions for suspicious charges, subscription scams, or spending velocity spikes.
             </div>
 
-            {/* Quick Prompts */}
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
               <button 
                 className="btn-ghost" 
@@ -1083,7 +1045,6 @@ export default function App() {
               </button>
             </div>
 
-            {/* AI Output Response Area */}
             {aiLoading && (
               <div style={{ padding: '1.5rem', textAlign: 'center', color: 'var(--text-2)' }}>
                 <div className="spinner" style={{ margin: '0 auto 0.75rem auto' }}></div>
@@ -1101,7 +1062,6 @@ export default function App() {
         </div>
       )}
 
-      {/* Toast Alert popup */}
       {toast && <div className={`toast ${toast.type}`}>{toast.message}</div>}
     </div>
   );

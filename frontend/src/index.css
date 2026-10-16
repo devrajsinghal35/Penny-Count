@@ -1,11 +1,6 @@
-/* ============================================================
-   Penny-Count — Modern Cyber-Emerald & Neon-Slate Design System
-   High-contrast, sleek glassmorphism, dynamic glow effects
-   ============================================================ */
 
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;700;800&display=swap');
 
-/* ---------- Design Tokens ---------- */
 :root {
   --bg:          #080c14;
   --bg-2:        #0f172a;
@@ -18,8 +13,8 @@
   --border:      rgba(255, 255, 255, 0.1);
   --border-hover:rgba(16, 185, 129, 0.4);
 
-  --accent:      #10b981;     /* Emerald */
-  --accent-2:    #06b6d4;     /* Cyan */
+  --accent:      #10b981;     
+  --accent-2:    #06b6d4;     
   --accent-glow: rgba(16, 185, 129, 0.3);
 
   --income:      #10b981;
@@ -41,7 +36,6 @@
   --transition:  all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* ---------- Reset & Base ---------- */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 html { font-size: 16px; -webkit-font-smoothing: antialiased; }
@@ -55,7 +49,6 @@ body {
   overflow-x: hidden;
 }
 
-/* Dynamic Aurora / Cyber Glow Background */
 body::before {
   content: '';
   position: fixed; inset: 0; z-index: -1;
@@ -78,7 +71,6 @@ h2 { font-size: 1.35rem; font-weight: 700; letter-spacing: -0.01em; }
 h3 { font-size: 1.1rem;  font-weight: 600; }
 p  { color: var(--text-2); font-size: 0.875rem; }
 
-/* ---------- Split Auth Page ---------- */
 .auth-split-wrapper {
   min-height: 100vh;
   display: grid;
@@ -247,7 +239,6 @@ p  { color: var(--text-2); font-size: 0.875rem; }
   }
 }
 
-/* ---------- Card & Form ---------- */
 .card {
   background: var(--glass-card);
   border: 1px solid var(--border);
@@ -278,7 +269,6 @@ p  { color: var(--text-2); font-size: 0.875rem; }
   gap: 0.75rem;
 }
 
-/* ---------- Inputs ---------- */
 input, select, textarea {
   width: 100%;
   padding: 0.75rem 1rem;
@@ -315,7 +305,6 @@ input:focus, select:focus, textarea:focus {
 
 select option { background: var(--bg-2); color: var(--text-1); }
 
-/* ---------- Buttons ---------- */
 button, .btn {
   display: inline-flex;
   align-items: center;
@@ -370,7 +359,6 @@ button, .btn {
   transform: scale(1.04);
 }
 
-/* form submit full-width */
 .form button[type="submit"] {
   width: 100%;
   padding: 0.85rem;
@@ -386,7 +374,6 @@ button, .btn {
   box-shadow: 0 6px 28px rgba(16, 185, 129, 0.45);
 }
 
-/* ---------- Toast / Alert ---------- */
 .toast {
   position: fixed; bottom: 1.75rem; right: 1.75rem;
   padding: 0.85rem 1.4rem;
@@ -403,14 +390,12 @@ button, .btn {
 
 @keyframes slideUp  { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
 
-/* ---------- Sidebar Layout ---------- */
 .page-shell {
   display: grid;
   grid-template-columns: var(--sidebar-w) 1fr;
   min-height: 100vh;
 }
 
-/* ---------- Sidebar ---------- */
 .sidebar {
   position: sticky; top: 0;
   height: 100vh;
@@ -553,7 +538,6 @@ button, .btn {
   background: var(--expense-bg);
 }
 
-/* ---------- Main Content ---------- */
 .content {
   padding: 2.25rem 3rem;
   overflow-y: auto;
@@ -572,7 +556,6 @@ button, .btn {
 
 .page-header h1 { font-size: 1.8rem; font-weight: 800; }
 
-/* ---------- Summary Cards ---------- */
 .summary-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -637,7 +620,6 @@ button, .btn {
   opacity: 0.15;
 }
 
-/* ---------- Chart Section ---------- */
 .chart-section {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -660,7 +642,6 @@ button, .btn {
   position: relative;
 }
 
-/* empty state */
 .empty-state {
   text-align: center;
   padding: 3rem 1rem;
@@ -670,7 +651,6 @@ button, .btn {
 
 .empty-state .emoji { font-size: 2.5rem; display: block; margin-bottom: 0.6rem; }
 
-/* ---------- Category Legend ---------- */
 .legend-list {
   list-style: none;
   display: flex;
@@ -700,7 +680,6 @@ button, .btn {
   color: var(--text-1);
 }
 
-/* ---------- Transactions Layout ---------- */
 .transactions-grid {
   display: grid;
   grid-template-columns: 380px 1fr;
@@ -708,7 +687,6 @@ button, .btn {
   align-items: start;
 }
 
-/* ---------- Transaction List ---------- */
 .transaction-list {
   display: flex;
   flex-direction: column;
@@ -781,7 +759,6 @@ button, .btn {
 .badge.income  { color: var(--income);  background: var(--income-bg);  border: 1px solid rgba(16,185,129,0.3); }
 .badge.expense { color: var(--expense); background: var(--expense-bg); border: 1px solid rgba(244,63,94,0.3); }
 
-/* ---------- Filter Bar ---------- */
 .filter-bar {
   display: flex;
   align-items: center;
@@ -795,7 +772,6 @@ button, .btn {
   min-width: 130px;
 }
 
-/* ---------- Loader Spinner ---------- */
 .loader {
   display: flex;
   align-items: center;
@@ -813,7 +789,6 @@ button, .btn {
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ---------- Responsive ---------- */
 @media (max-width: 1024px) {
   .transactions-grid { grid-template-columns: 1fr; }
   .chart-section     { grid-template-columns: 1fr; }

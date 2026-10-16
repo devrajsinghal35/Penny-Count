@@ -1,13 +1,13 @@
+from functools import wraps
 from flask import Blueprint, request, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
-from functools import wraps
 from models import db
 from models.user import User
 from services.auth_service import generate_token, verify_token
 
 auth_bp = Blueprint('auth', __name__)
 
-# ── JWT Authentication Decorator ───────────────────────────────────────────
+
 def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -16,23 +16,22 @@ def token_required(f):
             auth_header = request.headers['Authorization']
             if auth_header.startswith('Bearer '):
                 token = auth_header.split(" ")[1]
-        
+
         if not token:
             return jsonify({'message': 'Token is missing'}), 401
-            
+
         user_id = verify_token(token)
         if not user_id:
             return jsonify({'message': 'Token is invalid or expired'}), 401
-            
+
         current_user = User.query.get(user_id)
         if not current_user:
             return jsonify({'message': 'User not found'}), 401
-            
-        # Pass the authenticated user to the route
+
         return f(current_user, *args, **kwargs)
     return decorated
 
-# ── Register Endpoint ──────────────────────────────────────────────────────
+
 @auth_bp.route('/api/auth/register', methods=['POST'])
 def register():
     data = request.get_json(silent=True) or {}
@@ -64,7 +63,7 @@ def register():
         }
     }), 201
 
-# ── Login Endpoint ─────────────────────────────────────────────────────────
+
 @auth_bp.route('/api/auth/login', methods=['POST'])
 def login():
     data = request.get_json(silent=True) or {}
@@ -88,7 +87,7 @@ def login():
         }
     }), 200
 
-# ── Current User Profile ────────────────────────────────────────────────────
+
 @auth_bp.route('/api/auth/me', methods=['GET'])
 @token_required
 def me(current_user):
