@@ -71,7 +71,7 @@ Status: {verdict_badge}
 SAFE-TO-SPEND METRICS
 • Safe to Spend (After bills & buffer): ₹{safe_amt:,.2f}
 • Daily Recommended Budget: ₹{daily_safe:,.2f}/day
-{purchase_advice}
+
 CATEGORY BREAKDOWN
 {breakdown_str}
 • Total Income Logged: ₹{total_income:,.2f}
@@ -157,7 +157,7 @@ def analyze_spending(current_user):
                 text = candidates[0].get('content', {}).get('parts', [{}])[0].get('text', 'No response generated.')
                 clean_text = text.replace('**', '').replace('*', '').strip()
                 return jsonify({'response': clean_text}), 200
-            return jsonify({'response': generate_fallback_audit(tx_context, user_query)}), 200
+            return jsonify({'response': generate_fallback_audit(tx_context, user_query, safe_data)}), 200
 
     except Exception:
-        return jsonify({'response': generate_fallback_audit(tx_context, user_query)}), 200
+        return jsonify({'response': generate_fallback_audit(tx_context, user_query, safe_data)}), 200
