@@ -91,8 +91,6 @@ Penny-Count/
 ├── .github/
 │   └── workflows/devsecops.yml  # Automated SAST & security pipeline
 ├── render.yaml                  # Render service blueprint
-├── SECURITY.md                  # Security policies and vulnerability reporting
-├── THREAT_MODEL.md              # STRIDE model & OWASP API security mapping
 ├── backend/
 │   ├── app.py                   # Application factory and blueprint registration
 │   ├── config.py                # Environment and database configuration
