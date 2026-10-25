@@ -1026,20 +1026,20 @@ export default function App() {
               </button>
             </div>
 
-            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+            <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'stretch' }}>
               <input 
                 type="text" 
-                placeholder="Ask AI anything about your finances..." 
+                placeholder="e.g. Can I afford to buy ₹10,000 shoes right now?" 
                 value={aiQuery} 
                 onChange={e => setAiQuery(e.target.value)} 
-                style={{ flex: 1, width: '100%', padding: '0.75rem', borderRadius: '8px', background: 'var(--bg-3)', border: '1px solid var(--border)', color: 'var(--text-1)' }}
+                style={{ flex: '1 1 auto', minWidth: '0', padding: '0.85rem 1rem', borderRadius: '8px', background: 'var(--bg-3)', border: '1px solid var(--border)', color: 'var(--text-1)', fontSize: '0.95rem' }}
                 onKeyDown={e => e.key === 'Enter' && handleRunAiAnalysis()}
               />
               <button 
                 className="btn-primary-glow" 
                 onClick={() => handleRunAiAnalysis()} 
                 disabled={aiLoading}
-                style={{ padding: '0.75rem 1.25rem', borderRadius: '8px', background: 'linear-gradient(135deg, #06b6d4, #10b981)', whiteSpace: 'nowrap', flexShrink: 0 }}
+                style={{ width: 'auto', padding: '0.85rem 1.5rem', borderRadius: '8px', background: 'linear-gradient(135deg, #06b6d4, #10b981)', whiteSpace: 'nowrap', flexShrink: 0, cursor: 'pointer' }}
               >
                 {aiLoading ? 'Analyzing...' : 'Run Analysis'}
               </button>
