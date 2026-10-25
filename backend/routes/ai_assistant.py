@@ -26,21 +26,48 @@ def generate_fallback_audit(tx_context, user_query, safe_to_spend_data=None):
     breakdown_str = "\n".join(breakdown_lines) if breakdown_lines else "• No expense transactions recorded yet."
 
     purchase_advice = ""
+    verdict_badge = "Healthy / Low Risk"
     import re
-    amounts_found = re.findall(r'(\d+[\d,]*)', user_query.replace(',', ''))
-    if amounts_found:
+    # Match numbers like 50k, 50,000, 50000, 10.5k
+    pattern = r'(\d+(?:\.\d+)?)\s*(k|lakh|lac|cr)?'
+    matches = re.findall(pattern, user_query.replace(',', '').lower())
+    if matches:
         try:
-            target_val = float(amounts_found[0])
-            if safe_amt >= target_val:
-                purchase_advice = f"• Purchase Feasibility: You have ₹{safe_amt:,.2f} in Safe-to-Spend. A ₹{target_val:,.2f} purchase is within budget, leaving ₹{(safe_amt - target_val):,.2f} safe buffer.\n"
-            else:
-                purchase_advice = f"• Purchase Feasibility: CAUTION! A ₹{target_val:,.2f} purchase exceeds your current Safe-to-Spend balance of ₹{safe_amt:,.2f} by ₹{(target_val - safe_amt):,.2f}.\n"
+            val_str, unit = matches[0]
+            val = float(val_str)
+            if unit == 'k':
+                val *= 1000
+            elif unit in ('lakh', 'lac'):
+                val *= 100000
+            elif unit == 'cr':
+                val *= 10000000
+
+            if val > 0:
+                if safe_amt >= val:
+                    verdict_badge = "PURCHASE APPROVED: Within Safe-to-Spend"
+                    purchase_advice = f"""
+DIRECT VERDICT: YES, YOU CAN BUY THIS
+• Item Cost: ₹{val:,.2f}
+• Available Safe-to-Spend: ₹{safe_amt:,.2f}
+• Remaining Safe Buffer: ₹{(safe_amt - val):,.2f}
+• Impact: This purchase will not endanger your upcoming fixed bills or safety buffer.
+"""
+                else:
+                    deficit = val - safe_amt
+                    verdict_badge = "WARNING: EXCEEDS SAFE-TO-SPEND"
+                    purchase_advice = f"""
+DIRECT VERDICT: NO, NOT RECOMMENDED RIGHT NOW
+• Item Cost: ₹{val:,.2f}
+• Available Safe-to-Spend: ₹{safe_amt:,.2f}
+• Shortfall (Deficit): ₹{deficit:,.2f}
+• Risk: Buying this right now will dip into your emergency buffer or upcoming fixed commitments (Rent/Bills).
+"""
         except Exception:
             pass
 
     return f"""AI FINANCIAL AUDIT
-Status: {'Healthy / Low Risk' if safe_amt > 0 else 'Caution: Tight Cashflow'}
-
+Status: {verdict_badge}
+{purchase_advice}
 SAFE-TO-SPEND METRICS
 • Safe to Spend (After bills & buffer): ₹{safe_amt:,.2f}
 • Daily Recommended Budget: ₹{daily_safe:,.2f}/day
