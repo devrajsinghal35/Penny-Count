@@ -30,6 +30,14 @@ def create_app(config_class=Config):
     app.register_blueprint(transactions_bp)
     app.register_blueprint(ai_bp, url_prefix='/api/ai')
 
+    @app.route('/')
+    @app.route('/health')
+    def index():
+        return {
+            'status': 'online',
+            'message': 'Penny-Count Backend API is running! 🚀'
+        }, 200
+
     with app.app_context():
         db.create_all()
 
